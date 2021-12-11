@@ -15,8 +15,10 @@ from scd.logic.naming import (
 )
 
 
-def download_file(url: str, create_folder: bool = False, ignore_year: bool = False):
-    data = requests.get(url, allow_redirects=True)
+def download_file(
+    url: str, window: sg.Window, create_folder: bool = False, ignore_year: bool = False
+):
+    data = requests.get(url, allow_redirects=True, stream=True)
     decoded_url = unquote(data.url)
     filename = strip_after_year(basename(decoded_url))
 
@@ -41,5 +43,14 @@ def download_file(url: str, create_folder: bool = False, ignore_year: bool = Fal
 
     fullpath = f"{path_to}/{filename}"
 
+    content_length = data.headers["content-length"]
+    size = int(content_length) if content_length is not None else 1024
+    downloaded = 0
+
     with open(fullpath, "wb") as file:
-        file.write(data.content)
+        for chunk in data.iter_content(1024):
+            window.write_event_value(
+                "-INCREMENTDLPROGRESS-", round((downloaded / size) * 100)
+            )
+            file.write(chunk)
+            downloaded += len(chunk)

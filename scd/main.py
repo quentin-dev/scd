@@ -23,7 +23,15 @@ def run():
             sg.Checkbox("Save in separate folder", key="-SEPARATEFOLDER-"),
             sg.Checkbox("Ignore year", key="-IGNOREYEAR-"),
         ],
-        [sg.Button("Save"), sg.Button("Cancel"), sg.Text(key="-OUTPUTMESSAGE-")],
+        [
+            sg.ProgressBar(100, key="-DLPROGRESSBAR-"),
+            sg.Text("0%", key="-DLPROGRESS-"),
+        ],
+        [
+            sg.Button("Save"),
+            sg.Button("Cancel"),
+            sg.Text(key="-OUTPUTMESSAGE-"),
+        ],
     ]
 
     window = sg.Window("sunbro's Comics Downloader", layout)
@@ -38,6 +46,7 @@ def run():
             window.perform_long_operation(
                 lambda: download_file(
                     url=values["-URLINPUT-"],
+                    window=window,
                     create_folder=values["-SEPARATEFOLDER-"],
                     ignore_year=values["-IGNOREYEAR-"],
                 ),
@@ -47,6 +56,9 @@ def run():
             window["-OUTPUTMESSAGE-"].update("Downloading ...")
         elif event == "-DOWNLOADED-":
             window["-OUTPUTMESSAGE-"].update("Download successful")
+        elif event == "-INCREMENTDLPROGRESS-":
+            window["-DLPROGRESS-"].update(f"{values[event]}%")
+            window["-DLPROGRESSBAR-"].update(current_count=values[event])
 
     window.close()
 
